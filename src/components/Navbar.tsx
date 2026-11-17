@@ -16,7 +16,7 @@ const NAV_LINKS = [
   { id: 'gallery', label: 'Галерея' },
 ];
 
-const CURRENCY_LIST: CurrencyCode[] = ['USD', 'RUB', 'EUR'];
+const CURRENCY_LIST: CurrencyCode[] = ['USD', 'UAH', 'EUR'];
 
 export function Navbar({ onOpenPreorder }: NavbarProps) {
   const { theme, toggleTheme, currency, setCurrency, route, navigate } = useApp();
@@ -92,7 +92,7 @@ export function Navbar({ onOpenPreorder }: NavbarProps) {
           <div className="flex items-center gap-2">
             {/* Currency Switcher (desktop/tablet) */}
             <div
-              className="hidden md:flex items-center p-1 rounded-full border theme-border theme-subtle"
+              className="hidden md:flex items-center gap-1 p-1 rounded-full border theme-border theme-subtle"
               role="group"
               aria-label="Выбор валюты"
             >
@@ -104,13 +104,13 @@ export function Navbar({ onOpenPreorder }: NavbarProps) {
                     type="button"
                     onClick={() => setCurrency(code)}
                     aria-pressed={active}
-                    className={`min-h-[34px] px-2.5 rounded-full font-mono text-xs font-semibold transition-colors cursor-pointer ${
+                    className={`w-9 h-9 flex items-center justify-center rounded-full font-mono text-sm font-bold leading-none transition-all cursor-pointer ${
                       active
-                        ? 'bg-sky-500 text-white shadow-sm'
-                        : 'theme-text-secondary hover:theme-text-primary'
+                        ? 'bg-sky-500 text-white shadow-[0_0_16px_rgba(14,165,233,0.45)]'
+                        : 'theme-text-secondary hover:theme-text-primary hover:bg-white/5'
                     }`}
                   >
-                    {code === 'USD' ? '$' : code === 'RUB' ? '₽' : '€'}
+                    {code === 'USD' ? '$' : code === 'UAH' ? '₴' : '€'}
                   </button>
                 );
               })}

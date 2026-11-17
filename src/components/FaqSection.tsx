@@ -32,17 +32,25 @@ export function FaqSection() {
                     {item.q}
                   </span>
                   <ChevronDown
-                    className={`w-5 h-5 text-sky-500 dark:text-sky-400 shrink-0 transition-transform duration-300 ${
-                      isOpen ? 'rotate-180' : ''
+                    className={`w-5 h-5 text-sky-500 dark:text-sky-400 shrink-0 transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+                      isOpen ? 'rotate-180' : 'rotate-0'
                     }`}
                     aria-hidden="true"
                   />
                 </button>
-                {isOpen && (
-                  <div className="px-5 sm:px-6 pb-5 pt-1 text-sm sm:text-base theme-text-secondary leading-relaxed border-t theme-border">
-                    {item.a}
+
+                {/* Smooth CSS Grid accordion animation for open AND close */}
+                <div
+                  className={`grid transition-[grid-template-rows,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+                    isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
+                  }`}
+                >
+                  <div className="overflow-hidden">
+                    <div className="px-5 sm:px-6 pb-5 pt-3 text-sm sm:text-base theme-text-secondary leading-relaxed border-t theme-border">
+                      {item.a}
+                    </div>
                   </div>
-                )}
+                </div>
               </div>
             );
           })}

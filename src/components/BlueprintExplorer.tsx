@@ -1,11 +1,18 @@
 import { useState, useEffect } from 'react';
 import { Maximize2, Sun, Moon, X, Ruler, CheckCircle2 } from 'lucide-react';
 import { BLUEPRINT_NODES, assetUrl } from '../data/robotData';
+import { useApp } from '../context/AppContext';
 
 export function BlueprintExplorer() {
+  const { theme } = useApp();
   const [activeId, setActiveId] = useState<string>('battery');
-  const [cyberMode, setCyberMode] = useState(true);
+  const [cyberMode, setCyberMode] = useState(() => theme === 'dark');
   const [zoomOpen, setZoomOpen] = useState(false);
+
+  // Sync blueprint sheet automatically when user switches Light/Dark theme
+  useEffect(() => {
+    setCyberMode(theme === 'dark');
+  }, [theme]);
 
   const activeNode = BLUEPRINT_NODES.find((n) => n.id === activeId) ?? BLUEPRINT_NODES[0];
   const imgSrc = cyberMode ? assetUrl('blueprint-cyber.webp') : assetUrl('blueprint-light.webp');
@@ -69,7 +76,11 @@ export function BlueprintExplorer() {
         <div className="grid lg:grid-cols-12 gap-6 lg:gap-8 items-start">
           {/* Blueprint Canvas */}
           <div className="lg:col-span-7 surface-card rounded-3xl p-3 sm:p-5">
-            <div className="relative rounded-2xl overflow-hidden border theme-border bg-[#070B12]">
+            <div
+              className={`relative rounded-2xl overflow-hidden border theme-border transition-colors duration-300 ${
+                cyberMode ? 'bg-[#070B12]' : 'bg-[#F8FAFC]'
+              }`}
+            >
               <img
                 src={imgSrc}
                 alt="Чертёж компоновки робота DIY Robot Controller v1.0 в масштабе 1:1 с размерами 10.2×10.2 см"

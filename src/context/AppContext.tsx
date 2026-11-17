@@ -46,7 +46,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [currency, setCurrencyState] = useState<CurrencyCode>(() => {
     try {
       const saved = localStorage.getItem('iwa-currency') as CurrencyCode | null;
-      return saved === 'RUB' || saved === 'EUR' || saved === 'USD' ? saved : 'USD';
+      return saved === 'UAH' || saved === 'EUR' || saved === 'USD' ? saved : 'USD';
     } catch {
       return 'USD';
     }

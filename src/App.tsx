@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { AppProvider, useApp } from './context/AppContext';
 import { EntrySplash } from './components/EntrySplash';
+import { AmbientBackdrop } from './components/AmbientBackdrop';
 import { TriParticleCanvas } from './components/TriParticleCanvas';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
@@ -34,6 +35,7 @@ function AppShell() {
     <div className="relative min-h-screen bg-tech-grid">
       {showSplash && <EntrySplash onDone={() => setShowSplash(false)} />}
 
+      <AmbientBackdrop />
       <TriParticleCanvas />
       <Navbar onOpenPreorder={() => setPreorderOpen(true)} />
 

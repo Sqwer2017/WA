@@ -24,6 +24,30 @@ function createRoundedRectShape(width: number, height: number, radius: number) {
   return shape;
 }
 
+/** Creates a V-tapered rounded trapezoid: wider at top, narrower at bottom */
+function createRoundedTrapezoidShape(
+  topWidth: number,
+  bottomWidth: number,
+  height: number,
+  radius: number,
+) {
+  const shape = new THREE.Shape();
+  const halfTop = topWidth / 2;
+  const halfBot = bottomWidth / 2;
+  const halfH = height / 2;
+
+  shape.moveTo(-halfBot + radius, -halfH);
+  shape.lineTo(halfBot - radius, -halfH);
+  shape.quadraticCurveTo(halfBot, -halfH, halfBot + radius * 0.35, -halfH + radius);
+  shape.lineTo(halfTop - radius * 0.25, halfH - radius);
+  shape.quadraticCurveTo(halfTop, halfH, halfTop - radius, halfH);
+  shape.lineTo(-halfTop + radius, halfH);
+  shape.quadraticCurveTo(-halfTop, halfH, -halfTop + radius * 0.25, halfH - radius);
+  shape.lineTo(-halfBot - radius * 0.35, -halfH + radius);
+  shape.quadraticCurveTo(-halfBot, -halfH, -halfBot + radius, -halfH);
+  return shape;
+}
+
 function createBrushedMetalTexture() {
   const canvas = document.createElement('canvas');
   canvas.width = 256;
@@ -59,13 +83,11 @@ function drawOledFace(ctx: CanvasRenderingContext2D, mode: EyeMode, t: number) {
   ctx.fillStyle = '#030407';
   ctx.fillRect(0, 0, w, h);
 
-  // Subtle scanline background
   ctx.fillStyle = 'rgba(56, 189, 248, 0.04)';
   for (let y = 0; y < h; y += 6) {
     ctx.fillRect(0, y, w, 1);
   }
 
-  // Periodic natural blink every ~3.8s
   const blinkPhase = t % 3.8;
   const isBlinking = blinkPhase > 3.65;
 
@@ -81,7 +103,6 @@ function drawOledFace(ctx: CanvasRenderingContext2D, mode: EyeMode, t: number) {
     } else {
       ctx.fillRect(54 + sweepX * 0.4, 62, 48, 12);
       ctx.fillRect(154 + sweepX * 0.4, 62, 48, 12);
-      // Scan line bar
       ctx.fillStyle = 'rgba(56,189,248,0.45)';
       ctx.fillRect(22, 114, 212, 3);
     }
@@ -126,7 +147,6 @@ function drawOledFace(ctx: CanvasRenderingContext2D, mode: EyeMode, t: number) {
       ctx.stroke();
     }
   } else {
-    // neutral signature rectangular eyes from photo_2
     ctx.fillStyle = '#FFFFFF';
     ctx.shadowColor = '#FFFFFF';
     ctx.shadowBlur = 12;
@@ -160,7 +180,11 @@ export function Robot3DViewer({ eyeMode, wireframe, finishId }: Robot3DViewerPro
 
     let renderer: THREE.WebGLRenderer;
     try {
-      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
+      renderer = new THREE.WebGLRenderer({
+        antialias: true,
+        alpha: true,
+        powerPreference: 'high-performance',
+      });
     } catch {
       setWebglFailed(true);
       return;
@@ -180,22 +204,21 @@ export function Robot3DViewer({ eyeMode, wireframe, finishId }: Robot3DViewerPro
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(36, width / height, 0.1, 100);
-    camera.position.set(0, 0.2, 6.2);
+    camera.position.set(0, 0.05, 7.0);
 
-    // Lighting setup: crisp studio titanium + electric cyan rim
-    const ambient = new THREE.AmbientLight(0xdbeafe, 0.9);
+    const ambient = new THREE.AmbientLight(0xdbeafe, 0.95);
     scene.add(ambient);
 
-    const keyLight = new THREE.DirectionalLight(0xffffff, 2.8);
-    keyLight.position.set(3.5, 4.5, 5);
+    const keyLight = new THREE.DirectionalLight(0xffffff, 2.9);
+    keyLight.position.set(3.6, 4.6, 5.2);
     scene.add(keyLight);
 
-    const cyanRim = new THREE.PointLight(0x38bdf8, 12, 16);
-    cyanRim.position.set(-3.2, 1.4, 2.4);
+    const cyanRim = new THREE.PointLight(0x38bdf8, 13, 18);
+    cyanRim.position.set(-3.4, 1.4, 2.6);
     scene.add(cyanRim);
 
-    const backRim = new THREE.PointLight(0x818cf8, 8, 16);
-    backRim.position.set(2.8, -1.8, -3.0);
+    const backRim = new THREE.PointLight(0x818cf8, 9, 18);
+    backRim.position.set(3.0, -2.0, -3.2);
     scene.add(backRim);
 
     const brushedTex = createBrushedMetalTexture();
@@ -206,7 +229,7 @@ export function Robot3DViewer({ eyeMode, wireframe, finishId }: Robot3DViewerPro
       roughness: 0.34,
       roughnessMap: brushedTex,
       bumpMap: brushedTex,
-      bumpScale: 0.012,
+      bumpScale: 0.014,
     });
 
     const accentMat = new THREE.MeshStandardMaterial({
@@ -223,21 +246,21 @@ export function Robot3DViewer({ eyeMode, wireframe, finishId }: Robot3DViewerPro
     });
 
     const botGroup = new THREE.Group();
-    botGroup.rotation.set(0.1, -0.32, 0.04);
+    botGroup.rotation.set(0.08, -0.36, 0.03);
     scene.add(botGroup);
 
-    // 1. Upper Head Module (2.4 x 1.35 rounded anodized housing)
-    const headShape = createRoundedRectShape(2.45, 1.38, 0.18);
+    // 1. Upper Head Module — thicker anodized block (depth 0.78 + bevels)
+    const headShape = createRoundedRectShape(2.48, 1.34, 0.18);
     const headGeo = new THREE.ExtrudeGeometry(headShape, {
-      depth: 0.46,
+      depth: 0.78,
       bevelEnabled: true,
-      bevelThickness: 0.05,
-      bevelSize: 0.05,
+      bevelThickness: 0.06,
+      bevelSize: 0.055,
       bevelSegments: 4,
     });
     headGeo.center();
     const headMesh = new THREE.Mesh(headGeo, chassisMat);
-    headMesh.position.set(0, 0.62, 0);
+    headMesh.position.set(0, 0.92, 0);
     botGroup.add(headMesh);
 
     const headWire = new THREE.Mesh(headGeo, wireMat);
@@ -246,7 +269,7 @@ export function Robot3DViewer({ eyeMode, wireframe, finishId }: Robot3DViewerPro
     headWire.visible = false;
     botGroup.add(headWire);
 
-    // 2. OLED Visor Screen
+    // 2. OLED Visor Screen (flush on thicker front face: 0.78/2 + 0.06 = 0.45)
     const oledCanvas = document.createElement('canvas');
     oledCanvas.width = 256;
     oledCanvas.height = 144;
@@ -257,19 +280,22 @@ export function Robot3DViewer({ eyeMode, wireframe, finishId }: Robot3DViewerPro
     const screenGeo = new THREE.PlaneGeometry(1.22, 0.72);
     const screenMat = new THREE.MeshBasicMaterial({ map: oledTex });
     const screenMesh = new THREE.Mesh(screenGeo, screenMat);
-    screenMesh.position.set(-0.26, 0.62, 0.285);
+    screenMesh.position.set(-0.26, 0.92, 0.455);
     botGroup.add(screenMesh);
 
-    // Visor dark bezel
-    const bezelGeo = new THREE.PlaneGeometry(1.28, 0.78);
-    const bezelMat = new THREE.MeshStandardMaterial({ color: 0x050609, metalness: 0.3, roughness: 0.12 });
+    const bezelGeo = new THREE.PlaneGeometry(1.29, 0.78);
+    const bezelMat = new THREE.MeshStandardMaterial({
+      color: 0x050609,
+      metalness: 0.3,
+      roughness: 0.12,
+    });
     const bezelMesh = new THREE.Mesh(bezelGeo, bezelMat);
-    bezelMesh.position.set(-0.26, 0.62, 0.282);
+    bezelMesh.position.set(-0.26, 0.92, 0.452);
     botGroup.add(bezelMesh);
 
-    // 3. Optical Camera Module (right side of head)
+    // 3. Optical Camera Module
     const camGroup = new THREE.Group();
-    camGroup.position.set(0.72, 0.6, 0.28);
+    camGroup.position.set(0.72, 0.91, 0.452);
     botGroup.add(camGroup);
 
     const outerRing = new THREE.Mesh(
@@ -279,7 +305,7 @@ export function Robot3DViewer({ eyeMode, wireframe, finishId }: Robot3DViewerPro
     camGroup.add(outerRing);
 
     const innerBarrel = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.19, 0.21, 0.08, 32),
+      new THREE.CylinderGeometry(0.19, 0.21, 0.1, 32),
       new THREE.MeshStandardMaterial({ color: 0x080a0f, metalness: 0.8, roughness: 0.2 }),
     );
     innerBarrel.rotation.x = Math.PI / 2;
@@ -296,29 +322,29 @@ export function Robot3DViewer({ eyeMode, wireframe, finishId }: Robot3DViewerPro
       }),
     );
     lensGlass.rotation.x = Math.PI / 2;
-    lensGlass.position.z = 0.02;
+    lensGlass.position.z = 0.025;
     camGroup.add(lensGlass);
 
     // 4. Servo Hinge Cylinders (Acebot + TowerPro bridge)
-    const hingeGeo = new THREE.CylinderGeometry(0.12, 0.12, 0.9, 20);
+    const hingeGeo = new THREE.CylinderGeometry(0.15, 0.15, 1.05, 24);
     hingeGeo.rotateZ(Math.PI / 2);
     const hingeMesh = new THREE.Mesh(hingeGeo, accentMat);
-    hingeMesh.position.set(0, -0.15, -0.02);
+    hingeMesh.position.set(0, 0.12, -0.02);
     botGroup.add(hingeMesh);
 
-    // 5. Lower Body Monolith Chassis (trapezoid / tapered safe area)
-    const bodyShape = createRoundedRectShape(2.1, 1.32, 0.18);
+    // 5. Lower V-Shaped Longer Chassis (wider top 2.38 -> narrow bottom 1.12, height 1.94, depth 0.72)
+    const bodyShape = createRoundedTrapezoidShape(2.38, 1.12, 1.94, 0.18);
     const bodyGeo = new THREE.ExtrudeGeometry(bodyShape, {
-      depth: 0.42,
+      depth: 0.72,
       bevelEnabled: true,
-      bevelThickness: 0.045,
-      bevelSize: 0.045,
+      bevelThickness: 0.055,
+      bevelSize: 0.05,
       bevelSegments: 4,
     });
     bodyGeo.center();
     const bodyMesh = new THREE.Mesh(bodyGeo, chassisMat);
-    bodyMesh.position.set(0, -0.94, 0);
-    bodyMesh.rotation.x = -0.06;
+    bodyMesh.position.set(0, -0.96, 0);
+    bodyMesh.rotation.x = -0.04;
     botGroup.add(bodyMesh);
 
     const bodyWire = new THREE.Mesh(bodyGeo, wireMat);
@@ -328,32 +354,40 @@ export function Robot3DViewer({ eyeMode, wireframe, finishId }: Robot3DViewerPro
     bodyWire.visible = false;
     botGroup.add(bodyWire);
 
-    // Back glowing core strip (visible when user orbits 360°)
-    const backCore = new THREE.Mesh(
-      new THREE.BoxGeometry(0.95, 0.18, 0.04),
+    // Front recessed V-accent telemetry groove
+    const frontStrip = new THREE.Mesh(
+      new THREE.BoxGeometry(0.75, 0.06, 0.03),
       new THREE.MeshBasicMaterial({ color: 0x38bdf8 }),
     );
-    backCore.position.set(0, -0.92, -0.26);
+    frontStrip.position.set(0, -0.35, 0.415);
+    botGroup.add(frontStrip);
+
+    // Back glowing core strip (visible when orbited 360°)
+    const backCore = new THREE.Mesh(
+      new THREE.BoxGeometry(0.95, 0.2, 0.05),
+      new THREE.MeshBasicMaterial({ color: 0x38bdf8 }),
+    );
+    backCore.position.set(0, -0.85, -0.42);
     botGroup.add(backCore);
 
-    // 6. Floating Side Stabilizer Bar (from photo_2!)
-    const barShape = createRoundedRectShape(0.24, 1.85, 0.05);
+    // 6. Floating Side Stabilizer Bar angled to follow the V-taper
+    const barShape = createRoundedRectShape(0.24, 2.0, 0.05);
     const barGeo = new THREE.ExtrudeGeometry(barShape, {
-      depth: 0.14,
+      depth: 0.22,
       bevelEnabled: true,
-      bevelThickness: 0.02,
-      bevelSize: 0.02,
+      bevelThickness: 0.025,
+      bevelSize: 0.025,
       bevelSegments: 3,
     });
     barGeo.center();
     const barMesh = new THREE.Mesh(barGeo, chassisMat);
-    barMesh.position.set(1.52, -0.45, 0.15);
-    barMesh.rotation.set(0, -0.2, -0.35);
+    barMesh.position.set(1.42, -0.78, 0.16);
+    barMesh.rotation.set(0, -0.18, -0.31);
     botGroup.add(barMesh);
 
     // 7. Holographic Triangular Orbit Ring underneath
     const orbitRing = new THREE.Mesh(
-      new THREE.RingGeometry(1.85, 1.88, 3),
+      new THREE.RingGeometry(1.9, 1.93, 3),
       new THREE.MeshBasicMaterial({
         color: 0x38bdf8,
         side: THREE.DoubleSide,
@@ -362,11 +396,11 @@ export function Robot3DViewer({ eyeMode, wireframe, finishId }: Robot3DViewerPro
       }),
     );
     orbitRing.rotation.x = Math.PI / 2;
-    orbitRing.position.set(0, -1.85, 0);
+    orbitRing.position.set(0, -2.2, 0);
     scene.add(orbitRing);
 
     const circleRing = new THREE.Mesh(
-      new THREE.RingGeometry(2.1, 2.12, 64),
+      new THREE.RingGeometry(2.15, 2.17, 64),
       new THREE.MeshBasicMaterial({
         color: 0xffffff,
         side: THREE.DoubleSide,
@@ -375,15 +409,15 @@ export function Robot3DViewer({ eyeMode, wireframe, finishId }: Robot3DViewerPro
       }),
     );
     circleRing.rotation.x = Math.PI / 2;
-    circleRing.position.set(0, -1.85, 0);
+    circleRing.position.set(0, -2.2, 0);
     scene.add(circleRing);
 
     // Pointer Drag Controls
     let isDragging = false;
     let prevX = 0;
     let prevY = 0;
-    let targetRotY = -0.32;
-    let targetRotX = 0.1;
+    let targetRotY = -0.36;
+    let targetRotX = 0.08;
 
     const onPointerDown = (e: PointerEvent) => {
       isDragging = true;
@@ -422,14 +456,12 @@ export function Robot3DViewer({ eyeMode, wireframe, finishId }: Robot3DViewerPro
     resizeObserver.observe(el);
     window.addEventListener('resize', onResize);
 
-    // Animation loop
     let rafId = 0;
     const clock = new THREE.Clock();
 
     const animate = () => {
       const t = clock.getElapsedTime();
 
-      // Apply finish color live
       if (finishRef.current === 'titanium') {
         chassisMat.color.setHex(0x8892a4);
         chassisMat.roughness = 0.28;
@@ -441,14 +473,12 @@ export function Robot3DViewer({ eyeMode, wireframe, finishId }: Robot3DViewerPro
         chassisMat.roughness = 0.34;
       }
 
-      // Wireframe CAD overlay toggle
       const isWire = wireRef.current;
       headWire.visible = isWire;
       bodyWire.visible = isWire;
       chassisMat.opacity = isWire ? 0.45 : 1;
       chassisMat.transparent = isWire;
 
-      // Update OLED screen texture
       drawOledFace(oledCtx, eyeRef.current, t);
       oledTex.needsUpdate = true;
 
@@ -456,8 +486,8 @@ export function Robot3DViewer({ eyeMode, wireframe, finishId }: Robot3DViewerPro
         if (!isDragging) {
           targetRotY += 0.0028;
         }
-        botGroup.position.y = Math.sin(t * 1.4) * 0.07;
-        headMesh.rotation.z = Math.sin(t * 0.8) * 0.025;
+        botGroup.position.y = Math.sin(t * 1.4) * 0.06;
+        headMesh.rotation.z = Math.sin(t * 0.8) * 0.022;
         orbitRing.rotation.z = t * 0.35;
       }
 

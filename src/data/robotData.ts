@@ -1,4 +1,4 @@
-export type CurrencyCode = 'USD' | 'RUB' | 'EUR';
+export type CurrencyCode = 'USD' | 'UAH' | 'EUR';
 export type ThemeMode = 'dark' | 'light';
 export type EyeMode = 'neutral' | 'scan' | 'focus' | 'happy';
 
@@ -73,7 +73,7 @@ export const CURRENCIES: Record<
   { code: CurrencyCode; symbol: string; rateFromUsd: number; label: string }
 > = {
   USD: { code: 'USD', symbol: '$', rateFromUsd: 1, label: 'USD ($)' },
-  RUB: { code: 'RUB', symbol: '₽', rateFromUsd: 100, label: 'RUB (₽)' },
+  UAH: { code: 'UAH', symbol: '₴', rateFromUsd: 41.5, label: 'UAH (₴)' },
   EUR: { code: 'EUR', symbol: '€', rateFromUsd: 0.92, label: 'EUR (€)' },
 };
 
@@ -82,7 +82,7 @@ export function formatMoney(priceUsd: number, currency: CurrencyCode): string {
   const converted = Math.round(priceUsd * cfg.rateFromUsd);
   if (currency === 'USD') return `$${converted.toLocaleString('en-US')}`;
   if (currency === 'EUR') return `€${converted.toLocaleString('en-US')}`;
-  return `${converted.toLocaleString('ru-RU')} ₽`;
+  return `${converted.toLocaleString('uk-UA')} ₴`;
 }
 
 export const BLUEPRINT_NODES: BlueprintNode[] = [
@@ -343,6 +343,6 @@ export const FAQ_ITEMS = [
   },
   {
     q: 'Как происходит предзаказ и выбор валюты?',
-    a: 'Выберите удобную валюту в шапке сайта (по умолчанию USD, доступны также RUB и EUR), соберите комплектацию в конфигураторе и оформите заявку — после отправки откроется страница подтверждения с кодом брони для быстрой связи.',
+    a: 'Выберите удобную валюту в шапке сайта (по умолчанию USD, доступны также UAH и EUR), соберите комплектацию в конфигураторе и оформите заявку — после отправки откроется страница подтверждения с кодом брони для быстрой связи.',
   },
 ];
