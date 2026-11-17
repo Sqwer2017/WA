@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <title>iWA ONE PRO — Перенаправление</title>
+    <script>
+      // Redirect unknown GitHub Pages paths to the SPA 404 route cleanly
+      (function () {
+        var base = '/WA/';
+        var path = window.location.pathname;
+        var target = path.indexOf(base) === 0 ? path.slice(base.length) : path;
+        if (target === 'thanks') {
+          window.location.replace(base + '#/thanks');
+        } else {
+          window.location.replace(base + '#/404?from=' + encodeURIComponent(path));
+        }
+      })();
+    </script>
+  </head>
+  <body style="background:#040508;color:#fff;font-family:sans-serif;display:grid;place-items:center;min-height:100vh">
+    <p>Перенаправление на iWA ONE PRO…</p>
+  </body>
+</html>

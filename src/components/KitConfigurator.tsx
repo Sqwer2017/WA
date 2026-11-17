@@ -3,8 +3,11 @@ import {
   ROBOT_EDITIONS,
   CHASSIS_FINISHES,
   ADDON_MODULES,
+  CURRENCIES,
   type RobotEdition,
+  type CurrencyCode,
 } from '../data/robotData';
+import { useApp } from '../context/AppContext';
 
 interface KitConfiguratorProps {
   selectedEdition: RobotEdition['id'];
@@ -25,29 +28,60 @@ export function KitConfigurator({
   onToggleAddon,
   onProceedOrder,
 }: KitConfiguratorProps) {
+  const { currency, setCurrency, formatPrice } = useApp();
+
   const edition = ROBOT_EDITIONS.find((e) => e.id === selectedEdition) ?? ROBOT_EDITIONS[1];
-  const addonsSum = ADDON_MODULES.filter((m) => selectedAddons.includes(m.id)).reduce(
-    (sum, m) => sum + m.priceRub,
+  const addonsSumUsd = ADDON_MODULES.filter((m) => selectedAddons.includes(m.id)).reduce(
+    (sum, m) => sum + m.priceUsd,
     0,
   );
-  const totalRub = edition.priceRub + addonsSum;
-
-  const formatPrice = (n: number) => `${n.toLocaleString('ru-RU')} ₽`;
+  const totalUsd = edition.priceUsd + addonsSumUsd;
 
   return (
-    <section id="configurator" className="relative z-10 py-16 sm:py-24">
+    <section id="configurator" className="relative z-10 py-16 sm:py-24 border-t section-alt">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="max-w-2xl mb-10 sm:mb-14">
-          <p className="font-mono text-xs uppercase tracking-[0.22em] text-sky-400 mb-3">
-            // ВЫБОР КОМПЛЕКТАЦИИ
-          </p>
-          <h2 className="font-display text-3xl sm:text-4xl font-bold text-white leading-tight">
-            Соберите свой iWA ONE PRO
-          </h2>
-          <p className="text-slate-300 mt-3 text-base sm:text-lg">
-            От набора DIY для самостоятельной сборки по чертежу v1.0 до полностью готового робота в
-            металле с открытым SDK.
-          </p>
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10 sm:mb-14">
+          <div className="max-w-2xl">
+            <p className="font-mono text-xs uppercase tracking-[0.22em] theme-accent font-semibold mb-3">
+              // ВЫБОР КОМПЛЕКТАЦИИ
+            </p>
+            <h2 className="font-display text-3xl sm:text-4xl font-bold theme-text-primary leading-tight">
+              Соберите свой iWA ONE PRO
+            </h2>
+            <p className="theme-text-secondary mt-3 text-base sm:text-lg">
+              От набора DIY для самостоятельной сборки по чертежу v1.0 до полностью готового робота в
+              металле с открытым SDK.
+            </p>
+          </div>
+
+          {/* Inline Currency Pill Bar */}
+          <div className="flex items-center gap-2 self-start md:self-auto">
+            <span className="font-mono text-xs theme-text-muted">Валюта:</span>
+            <div
+              className="flex items-center p-1 rounded-full border theme-border theme-subtle"
+              role="group"
+              aria-label="Переключатель валюты в конфигураторе"
+            >
+              {(Object.keys(CURRENCIES) as CurrencyCode[]).map((code) => {
+                const active = currency === code;
+                return (
+                  <button
+                    key={code}
+                    type="button"
+                    onClick={() => setCurrency(code)}
+                    aria-pressed={active}
+                    className={`min-h-[38px] px-3.5 rounded-full font-mono text-xs font-bold transition-colors cursor-pointer ${
+                      active
+                        ? 'bg-sky-500 text-white shadow-sm'
+                        : 'theme-text-secondary hover:theme-text-primary'
+                    }`}
+                  >
+                    {CURRENCIES[code].label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         </div>
 
         {/* Editions Cards */}
@@ -69,8 +103,8 @@ export function KitConfigurator({
                 aria-pressed={active}
                 className={`surface-card rounded-3xl p-6 sm:p-7 flex flex-col justify-between cursor-pointer transition-all duration-300 ${
                   active
-                    ? 'border-sky-400 ring-2 ring-sky-400/30 shadow-[0_24px_60px_-20px_rgba(56,189,248,0.28)]'
-                    : 'hover:border-white/25'
+                    ? 'border-sky-500 ring-2 ring-sky-500/30 shadow-[0_24px_60px_-20px_rgba(14,165,233,0.28)]'
+                    : 'hover:border-sky-400/40'
                 }`}
               >
                 <div>
@@ -78,49 +112,52 @@ export function KitConfigurator({
                     <span
                       className={`font-mono text-[11px] uppercase tracking-[0.16em] px-2.5 py-1 rounded-full border ${
                         item.featured
-                          ? 'bg-sky-400/20 text-sky-300 border-sky-400/40'
-                          : 'bg-white/[0.05] text-slate-300 border-white/15'
+                          ? 'bg-sky-500/15 theme-accent border-sky-500/40 font-semibold'
+                          : 'theme-subtle theme-text-secondary theme-border'
                       }`}
                     >
                       {item.badge}
                     </span>
                     <div
                       className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
-                        active ? 'border-sky-400 bg-sky-400 text-[#050507]' : 'border-white/30'
+                        active ? 'border-sky-500 bg-sky-500 text-white' : 'theme-border'
                       }`}
                     >
                       {active && <Check className="w-3.5 h-3.5 stroke-[3]" aria-hidden="true" />}
                     </div>
                   </div>
 
-                  <h3 className="font-display text-xl sm:text-2xl font-bold text-white">
+                  <h3 className="font-display text-xl sm:text-2xl font-bold theme-text-primary">
                     {item.name}
                   </h3>
-                  <p className="text-sm text-slate-300 mt-1.5 min-h-[40px]">{item.tagline}</p>
+                  <p className="text-sm theme-text-secondary mt-1.5 min-h-[40px]">{item.tagline}</p>
 
-                  <div className="mt-5 pb-5 border-b border-white/10">
-                    <div className="font-display text-3xl font-extrabold text-white">
-                      {formatPrice(item.priceRub)}
+                  <div className="mt-5 pb-5 border-b theme-border">
+                    <div className="font-display text-3xl font-extrabold theme-text-primary">
+                      {formatPrice(item.priceUsd)}
                     </div>
-                    <div className="font-mono text-xs text-slate-400 mt-1">{item.delivery}</div>
+                    <div className="font-mono text-xs theme-text-muted mt-1">{item.delivery}</div>
                   </div>
 
                   <ul className="mt-5 space-y-2.5">
                     {item.includes.map((inc) => (
-                      <li key={inc} className="flex items-start gap-2.5 text-sm text-slate-200">
-                        <Check className="w-4 h-4 text-sky-400 shrink-0 mt-0.5" aria-hidden="true" />
+                      <li key={inc} className="flex items-start gap-2.5 text-sm theme-text-primary">
+                        <Check
+                          className="w-4 h-4 text-sky-500 dark:text-sky-400 shrink-0 mt-0.5"
+                          aria-hidden="true"
+                        />
                         <span>{inc}</span>
                       </li>
                     ))}
                   </ul>
                 </div>
 
-                <div className="mt-6 pt-4 border-t border-white/10">
+                <div className="mt-6 pt-4 border-t theme-border">
                   <span
                     className={`w-full min-h-[44px] rounded-xl font-semibold text-sm flex items-center justify-center transition-colors ${
                       active
-                        ? 'bg-white text-[#050507]'
-                        : 'bg-white/[0.06] text-white hover:bg-white/15'
+                        ? 'btn-primary-theme'
+                        : 'theme-subtle theme-text-primary border theme-border'
                     }`}
                   >
                     {active ? 'Выбрано в конфигураторе' : 'Выбрать комплектацию'}
@@ -134,8 +171,8 @@ export function KitConfigurator({
         {/* Finish + Addons + Live Total Bar */}
         <div className="surface-card rounded-3xl p-6 sm:p-8 grid lg:grid-cols-12 gap-8 items-center">
           <div className="lg:col-span-4 space-y-3">
-            <div className="font-mono text-xs uppercase tracking-[0.18em] text-slate-400">
-              1. Отделка корпуса
+            <div className="font-mono text-xs uppercase tracking-[0.18em] theme-text-muted">
+              1. Отделка корпуса (меняет цвет 3D)
             </div>
             <div className="grid gap-2">
               {CHASSIS_FINISHES.map((f) => {
@@ -148,18 +185,18 @@ export function KitConfigurator({
                     aria-pressed={active}
                     className={`min-h-[48px] px-3.5 py-2.5 rounded-xl border flex items-center gap-3 text-left transition-colors cursor-pointer ${
                       active
-                        ? 'border-sky-400 bg-sky-400/10 text-white'
-                        : 'border-white/10 bg-white/[0.03] text-slate-300 hover:bg-white/[0.07]'
+                        ? 'border-sky-500 bg-sky-500/10 theme-text-primary'
+                        : 'theme-border theme-subtle theme-text-secondary hover:border-sky-400/40'
                     }`}
                   >
                     <span
-                      className="w-6 h-6 rounded-full border border-white/30 shrink-0"
+                      className="w-6 h-6 rounded-full border border-white/30 shrink-0 shadow-inner"
                       style={{ backgroundColor: f.hex }}
                       aria-hidden="true"
                     />
                     <div className="min-w-0">
-                      <div className="text-sm font-semibold">{f.name}</div>
-                      <div className="text-xs text-slate-400 truncate">{f.accent}</div>
+                      <div className="text-sm font-semibold theme-text-primary">{f.name}</div>
+                      <div className="text-xs theme-text-muted truncate">{f.accent}</div>
                     </div>
                   </button>
                 );
@@ -168,7 +205,7 @@ export function KitConfigurator({
           </div>
 
           <div className="lg:col-span-5 space-y-3">
-            <div className="font-mono text-xs uppercase tracking-[0.18em] text-slate-400">
+            <div className="font-mono text-xs uppercase tracking-[0.18em] theme-text-muted">
               2. Дополнительные модули
             </div>
             <div className="grid gap-2">
@@ -182,27 +219,29 @@ export function KitConfigurator({
                     aria-pressed={active}
                     className={`min-h-[48px] px-3.5 py-2.5 rounded-xl border flex items-center justify-between gap-3 text-left transition-colors cursor-pointer ${
                       active
-                        ? 'border-sky-400 bg-sky-400/10 text-white'
-                        : 'border-white/10 bg-white/[0.03] text-slate-300 hover:bg-white/[0.07]'
+                        ? 'border-sky-500 bg-sky-500/10 theme-text-primary'
+                        : 'theme-border theme-subtle theme-text-secondary hover:border-sky-400/40'
                     }`}
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
                       <span
                         className={`w-6 h-6 rounded-md flex items-center justify-center shrink-0 border ${
                           active
-                            ? 'bg-sky-400 border-sky-400 text-[#050507]'
-                            : 'border-white/25 text-slate-400'
+                            ? 'bg-sky-500 border-sky-500 text-white'
+                            : 'theme-border theme-text-muted'
                         }`}
                       >
                         {active ? <Check className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
                       </span>
                       <div className="min-w-0">
-                        <div className="text-sm font-semibold truncate">{mod.name}</div>
-                        <div className="text-xs text-slate-400">{mod.note}</div>
+                        <div className="text-sm font-semibold theme-text-primary truncate">
+                          {mod.name}
+                        </div>
+                        <div className="text-xs theme-text-muted">{mod.note}</div>
                       </div>
                     </div>
-                    <span className="font-mono text-xs font-semibold text-sky-300 shrink-0">
-                      +{formatPrice(mod.priceRub)}
+                    <span className="font-mono text-xs font-semibold theme-accent shrink-0">
+                      +{formatPrice(mod.priceUsd)}
                     </span>
                   </button>
                 );
@@ -210,16 +249,16 @@ export function KitConfigurator({
             </div>
           </div>
 
-          <div className="lg:col-span-3 flex flex-col justify-between p-5 rounded-2xl bg-black/50 border border-white/10 space-y-4">
+          <div className="lg:col-span-3 flex flex-col justify-between p-5 rounded-2xl theme-subtle border theme-border space-y-4">
             <div>
-              <div className="flex items-center gap-1.5 font-mono text-xs text-sky-400">
+              <div className="flex items-center gap-1.5 font-mono text-xs theme-accent font-semibold">
                 <Sparkles className="w-3.5 h-3.5" aria-hidden="true" />
                 <span>ИТОГО ПО СБОРКЕ</span>
               </div>
-              <div className="font-display text-3xl font-extrabold text-white mt-1">
-                {formatPrice(totalRub)}
+              <div className="font-display text-3xl font-extrabold theme-text-primary mt-1">
+                {formatPrice(totalUsd)}
               </div>
-              <div className="text-xs text-slate-400 mt-1">
+              <div className="text-xs theme-text-muted mt-1">
                 {edition.name} · {selectedAddons.length} доп. модулей
               </div>
             </div>
@@ -227,7 +266,7 @@ export function KitConfigurator({
             <button
               type="button"
               onClick={onProceedOrder}
-              className="w-full min-h-[52px] px-5 py-3 rounded-full bg-white text-[#050507] font-bold text-sm hover:bg-sky-300 transition-colors inline-flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full min-h-[52px] px-5 py-3 rounded-full btn-primary-theme font-bold text-sm inline-flex items-center justify-center gap-2 cursor-pointer"
             >
               <span>Оформить бронь</span>
               <ArrowRight className="w-4 h-4" aria-hidden="true" />

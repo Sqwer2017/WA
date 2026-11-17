@@ -1,17 +1,24 @@
 import { useState } from 'react';
+import { AppProvider, useApp } from './context/AppContext';
+import { EntrySplash } from './components/EntrySplash';
 import { TriParticleCanvas } from './components/TriParticleCanvas';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
 import { SpecsBento } from './components/SpecsBento';
 import { BlueprintExplorer } from './components/BlueprintExplorer';
+import { FutureCases } from './components/FutureCases';
 import { KitConfigurator } from './components/KitConfigurator';
 import { ConceptGallery } from './components/ConceptGallery';
 import { FaqSection } from './components/FaqSection';
 import { Footer } from './components/Footer';
 import { PreorderModal } from './components/PreorderModal';
+import { ThanksPage } from './components/ThanksPage';
+import { NotFoundPage } from './components/NotFoundPage';
 import type { RobotEdition } from './data/robotData';
 
-export function App() {
+function AppShell() {
+  const { route } = useApp();
+  const [showSplash, setShowSplash] = useState(() => route === 'home');
   const [selectedEdition, setSelectedEdition] = useState<RobotEdition['id']>('pro');
   const [selectedFinish, setSelectedFinish] = useState<string>('obsidian');
   const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
@@ -24,26 +31,38 @@ export function App() {
   };
 
   return (
-    <div className="relative min-h-screen bg-[#050507] bg-tech-grid text-[#F4F5F8]">
+    <div className="relative min-h-screen bg-tech-grid">
+      {showSplash && <EntrySplash onDone={() => setShowSplash(false)} />}
+
       <TriParticleCanvas />
       <Navbar onOpenPreorder={() => setPreorderOpen(true)} />
 
-      <main>
-        <Hero onOpenPreorder={() => setPreorderOpen(true)} />
-        <SpecsBento />
-        <BlueprintExplorer />
-        <KitConfigurator
-          selectedEdition={selectedEdition}
-          onSelectEdition={setSelectedEdition}
-          selectedFinish={selectedFinish}
-          onSelectFinish={setSelectedFinish}
-          selectedAddons={selectedAddons}
-          onToggleAddon={toggleAddon}
-          onProceedOrder={() => setPreorderOpen(true)}
-        />
-        <ConceptGallery />
-        <FaqSection />
-      </main>
+      {route === 'thanks' ? (
+        <ThanksPage />
+      ) : route === '404' ? (
+        <NotFoundPage />
+      ) : (
+        <main>
+          <Hero
+            onOpenPreorder={() => setPreorderOpen(true)}
+            selectedFinish={selectedFinish}
+          />
+          <SpecsBento />
+          <BlueprintExplorer />
+          <FutureCases />
+          <KitConfigurator
+            selectedEdition={selectedEdition}
+            onSelectEdition={setSelectedEdition}
+            selectedFinish={selectedFinish}
+            onSelectFinish={setSelectedFinish}
+            selectedAddons={selectedAddons}
+            onToggleAddon={toggleAddon}
+            onProceedOrder={() => setPreorderOpen(true)}
+          />
+          <ConceptGallery />
+          <FaqSection />
+        </main>
+      )}
 
       <Footer onOpenPreorder={() => setPreorderOpen(true)} />
 
@@ -55,6 +74,14 @@ export function App() {
         selectedAddons={selectedAddons}
       />
     </div>
+  );
+}
+
+export function App() {
+  return (
+    <AppProvider>
+      <AppShell />
+    </AppProvider>
   );
 }
 

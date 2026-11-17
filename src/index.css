@@ -2,48 +2,87 @@
 
 @theme {
   --font-display: "Unbounded", system-ui, sans-serif;
-  --font-sans: "Inter", system-ui, sans-serif;
+  --font-sans: "Golos Text", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
 }
 
-:root {
+/* Theme Semantic Tokens */
+:root,
+html.dark {
   color-scheme: dark;
-  --bg-obsidian: #050507;
-  --bg-surface: #0c0d12;
-  --bg-elevated: #13151d;
-  --border-subtle: rgba(255, 255, 255, 0.1);
-  --accent-cyan: #38bdf8;
+  --bg-page: #040508;
+  --bg-section-alt: #080a10;
+  --bg-card: linear-gradient(145deg, rgba(20, 23, 33, 0.88), rgba(9, 10, 16, 0.95));
+  --bg-glass: rgba(8, 10, 16, 0.84);
+  --bg-subtle: rgba(255, 255, 255, 0.045);
+  --bg-input: rgba(0, 0, 0, 0.55);
+  --text-primary: #f4f7fc;
+  --text-secondary: #a8b2c5;
+  --text-muted: #7b869a;
+  --border-card: rgba(255, 255, 255, 0.11);
+  --border-strong: rgba(255, 255, 255, 0.22);
+  --grid-line: rgba(255, 255, 255, 0.035);
+  --accent: #38bdf8;
+  --accent-text: #7dd3fc;
+  --btn-primary-bg: #ffffff;
+  --btn-primary-text: #040508;
+  --shadow-card: 0 24px 60px -24px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+html.light {
+  color-scheme: light;
+  --bg-page: #edf1f7;
+  --bg-section-alt: #e3e9f2;
+  --bg-card: linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(244, 247, 252, 0.94));
+  --bg-glass: rgba(244, 247, 252, 0.86);
+  --bg-subtle: rgba(15, 23, 42, 0.045);
+  --bg-input: rgba(255, 255, 255, 0.95);
+  --text-primary: #0b1120;
+  --text-secondary: #334155;
+  --text-muted: #526075;
+  --border-card: rgba(15, 23, 42, 0.11);
+  --border-strong: rgba(15, 23, 42, 0.22);
+  --grid-line: rgba(15, 23, 42, 0.045);
+  --accent: #0284c7;
+  --accent-text: #0369a1;
+  --btn-primary-bg: #0b1120;
+  --btn-primary-text: #ffffff;
+  --shadow-card: 0 20px 50px -22px rgba(15, 23, 42, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
 html {
-  background-color: var(--bg-obsidian);
-  color: #f4f5f8;
+  background-color: var(--bg-page);
+  color: var(--text-primary);
   font-family: var(--font-sans);
   overflow-x: hidden;
+  transition: background-color 0.35s ease, color 0.35s ease;
 }
 
 body {
   margin: 0;
   min-height: 100vh;
   overflow-x: hidden;
-  background-color: var(--bg-obsidian);
+  background-color: var(--bg-page);
+  color: var(--text-primary);
 }
 
-/* Custom hairline grid pattern */
+/* Precision CAD hairline grid + subtle noise atmosphere */
 .bg-tech-grid {
   background-image:
-    linear-gradient(to right, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+    linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
   background-size: 48px 48px;
 }
 
-/* Brushed aluminum sheen card */
+.section-alt {
+  background-color: var(--bg-section-alt);
+  border-color: var(--border-card);
+}
+
 .surface-card {
-  background: linear-gradient(145deg, rgba(22, 24, 33, 0.88), rgba(10, 11, 16, 0.94));
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow:
-    0 20px 50px -20px rgba(0, 0, 0, 0.85),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  box-shadow: var(--shadow-card);
 }
 
 .surface-card-hover {
@@ -52,10 +91,46 @@ body {
 
 .surface-card-hover:hover {
   transform: translateY(-4px);
-  border-color: rgba(56, 189, 248, 0.42);
+  border-color: rgba(56, 189, 248, 0.48);
   box-shadow:
-    0 24px 60px -18px rgba(56, 189, 248, 0.16),
-    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+    0 24px 60px -18px rgba(14, 165, 233, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+
+.theme-text-primary {
+  color: var(--text-primary);
+}
+.theme-text-secondary {
+  color: var(--text-secondary);
+}
+.theme-text-muted {
+  color: var(--text-muted);
+}
+.theme-accent {
+  color: var(--accent-text);
+}
+.theme-border {
+  border-color: var(--border-card);
+}
+.theme-subtle {
+  background-color: var(--bg-subtle);
+}
+.theme-input {
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-strong);
+  color: var(--text-primary);
+}
+
+.btn-primary-theme {
+  background-color: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+  transition: transform 0.2s ease, opacity 0.2s ease, background-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.btn-primary-theme:hover {
+  background-color: #38bdf8;
+  color: #040508;
+  box-shadow: 0 0 28px rgba(56, 189, 248, 0.35);
 }
 
 /* Blueprint scanline sweep */
@@ -80,13 +155,13 @@ body {
   animation: blueprint-scan 5.5s linear infinite;
 }
 
-/* Subtle pulse ring for interactive hotspots */
 @keyframes hotspot-ping {
   0% {
     transform: scale(0.95);
     opacity: 0.85;
   }
-  75%, 100% {
+  75%,
+  100% {
     transform: scale(1.9);
     opacity: 0;
   }
@@ -96,7 +171,23 @@ body {
   animation: hotspot-ping 2.2s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
 
-/* Accessible focus outline */
+@keyframes orbit-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-orbit-slow {
+  animation: orbit-spin 16s linear infinite;
+}
+
+.animate-orbit-reverse {
+  animation: orbit-spin 11s linear infinite reverse;
+}
+
 :focus-visible {
   outline: 2px solid #38bdf8;
   outline-offset: 3px;
@@ -107,7 +198,9 @@ body {
     scroll-behavior: auto !important;
   }
   .animate-blueprint-scan,
-  .animate-hotspot-ping {
+  .animate-hotspot-ping,
+  .animate-orbit-slow,
+  .animate-orbit-reverse {
     animation: none !important;
   }
   .surface-card-hover:hover {

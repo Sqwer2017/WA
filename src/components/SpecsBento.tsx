@@ -83,13 +83,13 @@ export function SpecsBento() {
     <section id="features" ref={ref} className="relative z-10 py-16 sm:py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="max-w-2xl mb-10 sm:mb-14">
-          <p className="font-mono text-xs uppercase tracking-[0.22em] text-sky-400 mb-3">
+          <p className="font-mono text-xs uppercase tracking-[0.22em] theme-accent font-semibold mb-3">
             // АРХИТЕКТУРА ONE PRO
           </p>
-          <h2 className="font-display text-3xl sm:text-4xl font-bold text-white leading-tight">
+          <h2 className="font-display text-3xl sm:text-4xl font-bold theme-text-primary leading-tight">
             Инженерия внутри компактного монолита
           </h2>
-          <p className="text-slate-300 mt-3 text-base sm:text-lg">
+          <p className="theme-text-secondary mt-3 text-base sm:text-lg">
             Каждый миллиметр корпуса спроектирован вокруг реальной компоновки компонентов v1.0 — без
             пустого места и случайных деталей.
           </p>
@@ -108,22 +108,22 @@ export function SpecsBento() {
                     src={item.image}
                     alt=""
                     aria-hidden="true"
-                    className="pointer-events-none absolute inset-0 w-full h-full object-cover opacity-[0.16] mix-blend-screen"
+                    className="pointer-events-none absolute inset-0 w-full h-full object-cover opacity-[0.12] dark:opacity-[0.16] mix-blend-luminosity"
                   />
                 )}
                 <div className="relative z-10">
                   <div className="flex items-center justify-between gap-2 mb-5">
-                    <div className="w-11 h-11 rounded-xl bg-white/[0.06] border border-white/10 flex items-center justify-center text-sky-400">
+                    <div className="w-11 h-11 rounded-xl theme-subtle border theme-border flex items-center justify-center text-sky-500 dark:text-sky-400">
                       <Icon className="w-5 h-5" aria-hidden="true" />
                     </div>
-                    <span className="font-mono text-[11px] tracking-[0.18em] text-slate-400 uppercase px-2.5 py-1 rounded-md border border-white/10 bg-black/40">
+                    <span className="font-mono text-[11px] tracking-[0.18em] theme-text-muted uppercase px-2.5 py-1 rounded-md border theme-border theme-subtle">
                       {item.tag}
                     </span>
                   </div>
-                  <h3 className="font-display text-lg sm:text-xl font-bold text-white mb-2.5">
+                  <h3 className="font-display text-lg sm:text-xl font-bold theme-text-primary mb-2.5">
                     {item.title}
                   </h3>
-                  <p className="text-sm sm:text-base text-slate-300 leading-relaxed max-w-2xl">
+                  <p className="text-sm sm:text-base theme-text-secondary leading-relaxed max-w-2xl">
                     {item.text}
                   </p>
                 </div>

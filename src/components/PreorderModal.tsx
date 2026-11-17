@@ -1,11 +1,12 @@
 import { useState, useEffect, type FormEvent } from 'react';
-import { X, CheckCircle2, Copy, Check } from 'lucide-react';
+import { X } from 'lucide-react';
 import {
   ROBOT_EDITIONS,
   CHASSIS_FINISHES,
   ADDON_MODULES,
   type RobotEdition,
 } from '../data/robotData';
+import { useApp } from '../context/AppContext';
 
 interface PreorderModalProps {
   open: boolean;
@@ -22,17 +23,17 @@ export function PreorderModal({
   selectedFinish,
   selectedAddons,
 }: PreorderModalProps) {
+  const { currency, formatPrice, setLastOrder, navigate } = useApp();
   const [name, setName] = useState('');
   const [contact, setContact] = useState('');
   const [comment, setComment] = useState('');
   const [errors, setErrors] = useState<{ name?: string; contact?: string }>({});
-  const [submittedCode, setSubmittedCode] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
 
   const edition = ROBOT_EDITIONS.find((e) => e.id === selectedEdition) ?? ROBOT_EDITIONS[1];
   const finish = CHASSIS_FINISHES.find((f) => f.id === selectedFinish) ?? CHASSIS_FINISHES[0];
   const addons = ADDON_MODULES.filter((m) => selectedAddons.includes(m.id));
-  const totalRub = edition.priceRub + addons.reduce((s, a) => s + a.priceRub, 0);
+  const totalUsd = edition.priceUsd + addons.reduce((s, a) => s + a.priceUsd, 0);
+  const totalFormatted = formatPrice(totalUsd);
 
   useEffect(() => {
     if (!open) return;
@@ -55,36 +56,25 @@ export function PreorderModal({
     if (Object.keys(nextErrors).length > 0) return;
 
     const code = `IWA-${Math.floor(1000 + Math.random() * 9000)}`;
-    setSubmittedCode(code);
-  };
+    setLastOrder({
+      code,
+      editionName: edition.name,
+      finishName: finish.name,
+      addons: addons.map((a) => a.name),
+      totalFormatted,
+      currency,
+      customerName: name.trim(),
+      contact: contact.trim(),
+      comment: comment.trim(),
+      createdAt: new Date().toLocaleString('ru-RU'),
+    });
 
-  const summaryText = [
-    `Заявка на предзаказ: ${submittedCode ?? ''}`,
-    `Модель: ${edition.name}`,
-    `Отделка: ${finish.name}`,
-    `Доп. модули: ${addons.length ? addons.map((a) => a.name).join(', ') : 'Нет'}`,
-    `Итого: ${totalRub.toLocaleString('ru-RU')} ₽`,
-    `Имя: ${name.trim()}`,
-    `Контакт: ${contact.trim()}`,
-    comment.trim() ? `Комментарий: ${comment.trim()}` : null,
-  ]
-    .filter(Boolean)
-    .join('\n');
-
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(summaryText);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2200);
-    } catch {
-      // Fallback ignored if clipboard unavailable
-    }
-  };
-
-  const handleResetAndClose = () => {
-    setSubmittedCode(null);
+    setName('');
+    setContact('');
+    setComment('');
     setErrors({});
     onClose();
+    navigate('thanks');
   };
 
   return (
@@ -92,8 +82,8 @@ export function PreorderModal({
       role="dialog"
       aria-modal="true"
       aria-labelledby="preorder-title"
-      className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4"
-      onClick={handleResetAndClose}
+      className="fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-4"
+      onClick={onClose}
     >
       <div
         className="relative w-full max-w-lg surface-card rounded-3xl p-6 sm:p-8 max-h-[92vh] overflow-y-auto"
@@ -101,131 +91,86 @@ export function PreorderModal({
       >
         <button
           type="button"
-          onClick={handleResetAndClose}
+          onClick={onClose}
           aria-label="Закрыть окно предзаказа"
-          className="absolute top-4 right-4 w-11 h-11 rounded-full border border-white/15 bg-white/[0.04] text-white flex items-center justify-center hover:bg-white hover:text-black transition-colors cursor-pointer"
+          className="absolute top-4 right-4 w-11 h-11 rounded-full border theme-border theme-subtle theme-text-primary flex items-center justify-center hover:border-sky-400 transition-colors cursor-pointer"
         >
           <X className="w-5 h-5" />
         </button>
 
-        {submittedCode ? (
-          <div className="space-y-5 pt-2">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-500/15 border border-emerald-400/40 text-emerald-300 flex items-center justify-center">
-              <CheckCircle2 className="w-6 h-6" aria-hidden="true" />
+        <form onSubmit={handleSubmit} className="space-y-5" noValidate>
+          <div className="pr-10">
+            <p className="font-mono text-xs theme-accent font-semibold uppercase tracking-[0.18em]">
+              ПРЕДЗАКАЗ · iWA ONE PRO ({currency})
+            </p>
+            <h2 id="preorder-title" className="font-display text-2xl font-bold theme-text-primary mt-1">
+              Оформление брони
+            </h2>
+          </div>
+
+          {/* Selected summary box */}
+          <div className="p-4 rounded-2xl theme-subtle border theme-border space-y-1.5 text-sm">
+            <div className="flex items-center justify-between gap-2">
+              <span className="font-semibold theme-text-primary">{edition.name}</span>
+              <span className="font-mono font-bold theme-accent">{totalFormatted}</span>
             </div>
-
-            <div>
-              <p className="font-mono text-xs text-sky-400 uppercase tracking-[0.18em]">
-                БРОНЬ СФОРМИРОВАНА · {submittedCode}
-              </p>
-              <h2 id="preorder-title" className="font-display text-2xl font-bold text-white mt-1">
-                Конфигурация сохранена!
-              </h2>
-              <p className="text-sm text-slate-300 mt-2">
-                Скопируйте готовую карточку заявки ниже и отправьте её создателю проекта для
-                подтверждения сборки и доставки.
-              </p>
-            </div>
-
-            <pre className="p-4 rounded-2xl bg-black/60 border border-white/10 font-mono text-xs text-slate-200 whitespace-pre-wrap leading-relaxed">
-              {summaryText}
-            </pre>
-
-            <div className="flex flex-col sm:flex-row gap-3">
-              <button
-                type="button"
-                onClick={handleCopy}
-                className="flex-1 min-h-[48px] px-5 py-3 rounded-full bg-white text-[#050507] font-bold text-sm hover:bg-sky-300 transition-colors inline-flex items-center justify-center gap-2 cursor-pointer"
-              >
-                {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                <span>{copied ? 'Скопировано!' : 'Скопировать заявку'}</span>
-              </button>
-              <button
-                type="button"
-                onClick={handleResetAndClose}
-                className="min-h-[48px] px-5 py-3 rounded-full border border-white/20 text-white font-semibold text-sm hover:bg-white/10 transition-colors cursor-pointer"
-              >
-                Готово
-              </button>
+            <div className="text-xs theme-text-muted">
+              Корпус: {finish.name}
+              {addons.length > 0 ? ` · + ${addons.map((a) => a.name).join(', ')}` : ''}
             </div>
           </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="space-y-5" noValidate>
-            <div className="pr-10">
-              <p className="font-mono text-xs text-sky-400 uppercase tracking-[0.18em]">
-                ПРЕДЗАКАЗ · iWA ONE PRO
-              </p>
-              <h2 id="preorder-title" className="font-display text-2xl font-bold text-white mt-1">
-                Оформление брони
-              </h2>
-            </div>
 
-            {/* Selected summary box */}
-            <div className="p-4 rounded-2xl bg-black/50 border border-white/10 space-y-1.5 text-sm">
-              <div className="flex items-center justify-between gap-2">
-                <span className="font-semibold text-white">{edition.name}</span>
-                <span className="font-mono font-bold text-sky-300">
-                  {totalRub.toLocaleString('ru-RU')} ₽
-                </span>
-              </div>
-              <div className="text-xs text-slate-400">
-                Корпус: {finish.name}
-                {addons.length > 0 ? ` · + ${addons.map((a) => a.name).join(', ')}` : ''}
-              </div>
-            </div>
+          <div>
+            <label htmlFor="preorder-name" className="block text-sm font-medium theme-text-primary mb-1.5">
+              Ваше имя *
+            </label>
+            <input
+              id="preorder-name"
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Например, Алексей"
+              className="w-full min-h-[46px] px-4 rounded-xl theme-input text-sm focus:border-sky-400 focus:outline-none"
+            />
+            {errors.name && <p className="text-xs text-rose-500 mt-1">{errors.name}</p>}
+          </div>
 
-            <div>
-              <label htmlFor="preorder-name" className="block text-sm font-medium text-slate-200 mb-1.5">
-                Ваше имя *
-              </label>
-              <input
-                id="preorder-name"
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Например, Алексей"
-                className="w-full min-h-[46px] px-4 rounded-xl bg-black/60 border border-white/15 text-white placeholder:text-slate-500 text-sm focus:border-sky-400 focus:outline-none"
-              />
-              {errors.name && <p className="text-xs text-rose-400 mt-1">{errors.name}</p>}
-            </div>
+          <div>
+            <label htmlFor="preorder-contact" className="block text-sm font-medium theme-text-primary mb-1.5">
+              Telegram, телефон или Email *
+            </label>
+            <input
+              id="preorder-contact"
+              type="text"
+              value={contact}
+              onChange={(e) => setContact(e.target.value)}
+              placeholder="@username или +1 / +7 ..."
+              className="w-full min-h-[46px] px-4 rounded-xl theme-input text-sm focus:border-sky-400 focus:outline-none"
+            />
+            {errors.contact && <p className="text-xs text-rose-500 mt-1">{errors.contact}</p>}
+          </div>
 
-            <div>
-              <label htmlFor="preorder-contact" className="block text-sm font-medium text-slate-200 mb-1.5">
-                Telegram, телефон или Email *
-              </label>
-              <input
-                id="preorder-contact"
-                type="text"
-                value={contact}
-                onChange={(e) => setContact(e.target.value)}
-                placeholder="@username или +7 999 000-00-00"
-                className="w-full min-h-[46px] px-4 rounded-xl bg-black/60 border border-white/15 text-white placeholder:text-slate-500 text-sm focus:border-sky-400 focus:outline-none"
-              />
-              {errors.contact && <p className="text-xs text-rose-400 mt-1">{errors.contact}</p>}
-            </div>
+          <div>
+            <label htmlFor="preorder-comment" className="block text-sm font-medium theme-text-primary mb-1.5">
+              Пожелания (гравировка, прошивка, доставка)
+            </label>
+            <textarea
+              id="preorder-comment"
+              rows={3}
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              placeholder="Например: нужна кастомная гравировка на корпусе..."
+              className="w-full p-3.5 rounded-xl theme-input text-sm focus:border-sky-400 focus:outline-none resize-none"
+            />
+          </div>
 
-            <div>
-              <label htmlFor="preorder-comment" className="block text-sm font-medium text-slate-200 mb-1.5">
-                Пожелания (гравировка, прошивка, доставка)
-              </label>
-              <textarea
-                id="preorder-comment"
-                rows={3}
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-                placeholder="Например: нужна кастомная гравировка на корпусе..."
-                className="w-full p-3.5 rounded-xl bg-black/60 border border-white/15 text-white placeholder:text-slate-500 text-sm focus:border-sky-400 focus:outline-none resize-none"
-              />
-            </div>
-
-            <button
-              type="submit"
-              className="w-full min-h-[52px] px-6 py-3.5 rounded-full bg-white text-[#050507] font-bold text-base hover:bg-sky-300 transition-colors cursor-pointer"
-            >
-              Сформировать бронь
-            </button>
-          </form>
-        )}
+          <button
+            type="submit"
+            className="w-full min-h-[52px] px-6 py-3.5 rounded-full btn-primary-theme font-bold text-base cursor-pointer"
+          >
+            Подтвердить предзаказ
+          </button>
+        </form>
       </div>
     </div>
   );

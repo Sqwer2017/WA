@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { useApp } from '../context/AppContext';
 
 interface Particle {
   x: number;
@@ -14,6 +15,9 @@ interface Particle {
 
 export function TriParticleCanvas() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const { theme } = useApp();
+  const themeRef = useRef(theme);
+  themeRef.current = theme;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -22,7 +26,6 @@ export function TriParticleCanvas() {
     if (!ctx) return;
 
     const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
     let width = 0;
     let height = 0;
     let rafId = 0;
@@ -38,7 +41,7 @@ export function TriParticleCanvas() {
       canvas.style.height = `${height}px`;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-      const count = width < 768 ? 16 : 32;
+      const count = width < 768 ? 14 : 28;
       particles = Array.from({ length: count }, () => ({
         x: Math.random() * width,
         y: Math.random() * height,
@@ -47,12 +50,13 @@ export function TriParticleCanvas() {
         size: 5 + Math.random() * 14,
         angle: Math.random() * Math.PI * 2,
         spin: (Math.random() - 0.5) * 0.008,
-        alpha: 0.08 + Math.random() * 0.2,
+        alpha: 0.09 + Math.random() * 0.18,
         filled: Math.random() > 0.78,
       }));
     };
 
     const drawTriangle = (p: Particle) => {
+      const isLight = themeRef.current === 'light';
       ctx.save();
       ctx.translate(p.x, p.y);
       ctx.rotate(p.angle);
@@ -67,10 +71,14 @@ export function TriParticleCanvas() {
       }
       ctx.closePath();
       if (p.filled) {
-        ctx.fillStyle = `rgba(56, 189, 248, ${p.alpha * 0.45})`;
+        ctx.fillStyle = isLight
+          ? `rgba(2, 132, 199, ${p.alpha * 0.45})`
+          : `rgba(56, 189, 248, ${p.alpha * 0.45})`;
         ctx.fill();
       } else {
-        ctx.strokeStyle = `rgba(255, 255, 255, ${p.alpha})`;
+        ctx.strokeStyle = isLight
+          ? `rgba(15, 23, 42, ${p.alpha * 0.75})`
+          : `rgba(255, 255, 255, ${p.alpha})`;
         ctx.lineWidth = 1;
         ctx.stroke();
       }

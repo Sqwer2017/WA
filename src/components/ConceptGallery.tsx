@@ -21,7 +21,8 @@ export function ConceptGallery() {
     if (lightboxIdx === null) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setLightboxIdx(null);
-      if (e.key === 'ArrowRight') setLightboxIdx((i) => (i === null ? null : (i + 1) % visible.length));
+      if (e.key === 'ArrowRight')
+        setLightboxIdx((i) => (i === null ? null : (i + 1) % visible.length));
       if (e.key === 'ArrowLeft')
         setLightboxIdx((i) => (i === null ? null : (i - 1 + visible.length) % visible.length));
     };
@@ -32,23 +33,22 @@ export function ConceptGallery() {
   const currentItem = lightboxIdx !== null ? visible[lightboxIdx] : null;
 
   return (
-    <section id="gallery" className="relative z-10 py-16 sm:py-24 border-t border-white/10 bg-[#07080C]">
+    <section id="gallery" className="relative z-10 py-16 sm:py-24 border-t theme-border">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-10">
           <div className="max-w-2xl">
-            <p className="font-mono text-xs uppercase tracking-[0.22em] text-sky-400 mb-3">
+            <p className="font-mono text-xs uppercase tracking-[0.22em] theme-accent font-semibold mb-3">
               // DESIGN & PROTOTYPE ARCHIVE
             </p>
-            <h2 className="font-display text-3xl sm:text-4xl font-bold text-white leading-tight">
+            <h2 className="font-display text-3xl sm:text-4xl font-bold theme-text-primary leading-tight">
               От первых концептов к iWA ONE PRO
             </h2>
-            <p className="text-slate-300 mt-3 text-base">
+            <p className="theme-text-secondary mt-3 text-base">
               Визуальная вселенная проекта: фирменная геометрия триад, прототип металлического
               корпуса и эволюция айдентики.
             </p>
           </div>
 
-          {/* Filter pills */}
           <div className="flex flex-wrap gap-2" role="group" aria-label="Фильтр галереи">
             {FILTERS.map((f) => {
               const active = filter === f.id;
@@ -63,8 +63,8 @@ export function ConceptGallery() {
                   aria-pressed={active}
                   className={`min-h-[44px] px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition-colors cursor-pointer ${
                     active
-                      ? 'bg-white text-[#050507] font-bold'
-                      : 'bg-white/[0.04] border border-white/10 text-slate-300 hover:bg-white/[0.1]'
+                      ? 'btn-primary-theme font-bold'
+                      : 'theme-subtle border theme-border theme-text-secondary hover:border-sky-400/50'
                   }`}
                 >
                   {f.label}
@@ -74,7 +74,6 @@ export function ConceptGallery() {
           </div>
         </div>
 
-        {/* Gallery Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
           {visible.map((work, idx) => (
             <button
@@ -83,24 +82,24 @@ export function ConceptGallery() {
               onClick={() => setLightboxIdx(idx)}
               className="group surface-card surface-card-hover rounded-2xl overflow-hidden text-left flex flex-col cursor-pointer"
             >
-              <div className="relative w-full aspect-[4/5] bg-black overflow-hidden">
+              <div className="relative w-full aspect-[4/5] bg-[#06070B] overflow-hidden">
                 <img
                   src={work.image}
                   alt={work.title}
                   loading="lazy"
                   className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#050507] via-transparent to-transparent opacity-70" />
-                <span className="absolute top-3 right-3 w-10 h-10 rounded-full bg-black/70 border border-white/20 text-white flex items-center justify-center opacity-85 group-hover:opacity-100 group-hover:bg-white group-hover:text-black transition-all">
+                <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-transparent opacity-70" />
+                <span className="absolute top-3 right-3 w-10 h-10 rounded-full bg-black/70 border border-white/20 text-white flex items-center justify-center opacity-85 group-hover:opacity-100 group-hover:bg-sky-500 group-hover:border-sky-500 transition-all">
                   <Expand className="w-4 h-4" aria-hidden="true" />
                 </span>
               </div>
               <div className="p-4 flex-1 flex flex-col justify-between">
                 <div>
-                  <h3 className="font-display text-sm sm:text-base font-bold text-white">
+                  <h3 className="font-display text-sm sm:text-base font-bold theme-text-primary">
                     {work.title}
                   </h3>
-                  <p className="text-xs sm:text-sm text-slate-300 mt-1.5 line-clamp-2">
+                  <p className="text-xs sm:text-sm theme-text-secondary mt-1.5 line-clamp-2">
                     {work.caption}
                   </p>
                 </div>
@@ -110,7 +109,6 @@ export function ConceptGallery() {
         </div>
       </div>
 
-      {/* Lightbox */}
       {currentItem && (
         <div
           role="dialog"
@@ -127,12 +125,12 @@ export function ConceptGallery() {
               type="button"
               onClick={() => setLightboxIdx(null)}
               aria-label="Закрыть просмотр"
-              className="absolute top-3 right-3 z-10 w-11 h-11 rounded-full bg-black/80 border border-white/20 text-white flex items-center justify-center hover:bg-white hover:text-black transition-colors cursor-pointer"
+              className="absolute top-3 right-3 z-10 w-11 h-11 rounded-full bg-black/80 border border-white/20 text-white flex items-center justify-center hover:bg-sky-500 transition-colors cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
 
-            <div className="relative w-full flex items-center justify-center max-h-[70vh] overflow-hidden rounded-2xl bg-black">
+            <div className="relative w-full flex items-center justify-center max-h-[70vh] overflow-hidden rounded-2xl bg-[#05060A]">
               <img
                 src={currentItem.image}
                 alt={currentItem.title}
@@ -140,12 +138,12 @@ export function ConceptGallery() {
               />
             </div>
 
-            <div className="w-full flex items-center justify-between gap-4 mt-4 pt-4 border-t border-white/10">
+            <div className="w-full flex items-center justify-between gap-4 mt-4 pt-4 border-t theme-border">
               <div>
-                <h3 className="font-display text-base sm:text-lg font-bold text-white">
+                <h3 className="font-display text-base sm:text-lg font-bold theme-text-primary">
                   {currentItem.title}
                 </h3>
-                <p className="text-xs sm:text-sm text-slate-300 mt-0.5">{currentItem.caption}</p>
+                <p className="text-xs sm:text-sm theme-text-secondary mt-0.5">{currentItem.caption}</p>
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 <button
@@ -156,7 +154,7 @@ export function ConceptGallery() {
                     )
                   }
                   aria-label="Предыдущее фото"
-                  className="w-11 h-11 rounded-full border border-white/20 bg-white/[0.06] text-white flex items-center justify-center hover:bg-white hover:text-black transition-colors cursor-pointer"
+                  className="w-11 h-11 rounded-full border theme-border theme-subtle theme-text-primary flex items-center justify-center hover:border-sky-400 transition-colors cursor-pointer"
                 >
                   <ChevronLeft className="w-5 h-5" />
                 </button>
@@ -166,7 +164,7 @@ export function ConceptGallery() {
                     setLightboxIdx((i) => (i === null ? null : (i + 1) % visible.length))
                   }
                   aria-label="Следующее фото"
-                  className="w-11 h-11 rounded-full border border-white/20 bg-white/[0.06] text-white flex items-center justify-center hover:bg-white hover:text-black transition-colors cursor-pointer"
+                  className="w-11 h-11 rounded-full border theme-border theme-subtle theme-text-primary flex items-center justify-center hover:border-sky-400 transition-colors cursor-pointer"
                 >
                   <ChevronRight className="w-5 h-5" />
                 </button>

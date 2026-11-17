@@ -1,3 +1,7 @@
+export type CurrencyCode = 'USD' | 'RUB' | 'EUR';
+export type ThemeMode = 'dark' | 'light';
+export type EyeMode = 'neutral' | 'scan' | 'focus' | 'happy';
+
 export interface BlueprintNode {
   id: string;
   code: string;
@@ -6,8 +10,8 @@ export interface BlueprintNode {
   dimensions: string;
   description: string;
   specs: string[];
-  x: number; // percentage on blueprint image
-  y: number; // percentage on blueprint image
+  x: number;
+  y: number;
 }
 
 export interface RobotEdition {
@@ -15,7 +19,7 @@ export interface RobotEdition {
   badge: string;
   name: string;
   tagline: string;
-  priceRub: number;
+  priceUsd: number;
   delivery: string;
   featured?: boolean;
   includes: string[];
@@ -24,8 +28,19 @@ export interface RobotEdition {
 export interface AddonModule {
   id: string;
   name: string;
-  priceRub: number;
+  priceUsd: number;
   note: string;
+}
+
+export interface FutureCase {
+  id: string;
+  phase: string;
+  status: string;
+  title: string;
+  subtitle: string;
+  description: string;
+  hardwareUse: string[];
+  metrics: { label: string; value: string }[];
 }
 
 export interface GalleryWork {
@@ -37,8 +52,38 @@ export interface GalleryWork {
   aspect: 'portrait' | 'square' | 'wide';
 }
 
+export interface OrderRecord {
+  code: string;
+  editionName: string;
+  finishName: string;
+  addons: string[];
+  totalFormatted: string;
+  currency: CurrencyCode;
+  customerName: string;
+  contact: string;
+  comment: string;
+  createdAt: string;
+}
+
 export const assetUrl = (filename: string) =>
   `${import.meta.env.BASE_URL}images/${filename}`;
+
+export const CURRENCIES: Record<
+  CurrencyCode,
+  { code: CurrencyCode; symbol: string; rateFromUsd: number; label: string }
+> = {
+  USD: { code: 'USD', symbol: '$', rateFromUsd: 1, label: 'USD ($)' },
+  RUB: { code: 'RUB', symbol: '₽', rateFromUsd: 100, label: 'RUB (₽)' },
+  EUR: { code: 'EUR', symbol: '€', rateFromUsd: 0.92, label: 'EUR (€)' },
+};
+
+export function formatMoney(priceUsd: number, currency: CurrencyCode): string {
+  const cfg = CURRENCIES[currency];
+  const converted = Math.round(priceUsd * cfg.rateFromUsd);
+  if (currency === 'USD') return `$${converted.toLocaleString('en-US')}`;
+  if (currency === 'EUR') return `€${converted.toLocaleString('en-US')}`;
+  return `${converted.toLocaleString('ru-RU')} ₽`;
+}
 
 export const BLUEPRINT_NODES: BlueprintNode[] = [
   {
@@ -97,7 +142,7 @@ export const ROBOT_EDITIONS: RobotEdition[] = [
     badge: 'ДЛЯ ИНЖЕНЕРОВ',
     name: 'iWA DIY Core Kit',
     tagline: 'Набор для самостоятельной сборки по оригинальному чертежу v1.0',
-    priceRub: 4900,
+    priceUsd: 59,
     delivery: 'Отправка комплекта за 5 дней',
     includes: [
       'Фирменная печатная плата PCB Controller v1.0',
@@ -111,7 +156,7 @@ export const ROBOT_EDITIONS: RobotEdition[] = [
     badge: 'ХИТ ПРОДАЖ',
     name: 'iWA ONE PRO',
     tagline: 'Полностью собранный Triangle Bot из шлифованного тёмного металла',
-    priceRub: 19900,
+    priceUsd: 249,
     delivery: 'Предзаказ · Партия 2026',
     featured: true,
     includes: [
@@ -126,11 +171,11 @@ export const ROBOT_EDITIONS: RobotEdition[] = [
     badge: 'LIMITED EDITION',
     name: 'Founders Triad Pack',
     tagline: 'Расширенный коллекционный комплект с открытым SDK и доп. модулями',
-    priceRub: 27900,
+    priceUsd: 349,
     delivery: 'Индивидуальная сборка · Гравировка серийника',
     includes: [
       'Всё из комплектации iWA ONE PRO',
-      'Гравировка уникального номера серии и логотипа iWA',
+      'Гравировка уникального номера серии и эмблемы iWA',
       'Доступ к SDK кастомных эмоций и сценариев поведения',
       'Запасной АКБ 2500 mAh и боковой стабилизатор',
     ],
@@ -139,14 +184,77 @@ export const ROBOT_EDITIONS: RobotEdition[] = [
 
 export const CHASSIS_FINISHES = [
   { id: 'obsidian', name: 'Brushed Obsidian', hex: '#14161D', accent: 'Классический тёмный шлифованный металл' },
-  { id: 'titanium', name: 'Raw Titanium', hex: '#6B7280', accent: 'Индустриальный светлый сатин' },
+  { id: 'titanium', name: 'Raw Titanium', hex: '#8A93A2', accent: 'Индустриальный светлый сатин' },
   { id: 'stealth', name: 'Matte Stealth', hex: '#09090B', accent: 'Глубокое матовое покрытие без бликов' },
 ];
 
 export const ADDON_MODULES: AddonModule[] = [
-  { id: 'extra-lipo', name: 'Запасной LiPo 2500mAh (103450)', priceRub: 1800, note: '+6 часов автономности' },
-  { id: 'magnetic-mount', name: 'Магнитные боковые панели (пара)', priceRub: 2200, note: 'Быстрая замена обвеса' },
-  { id: 'usb-dock', name: 'Настольная док-станция Triad', priceRub: 3400, note: 'Магнитная зарядка USB-C' },
+  { id: 'extra-lipo', name: 'Запасной LiPo 2500mAh (103450)', priceUsd: 22, note: '+6 часов автономности' },
+  { id: 'magnetic-mount', name: 'Магнитные боковые панели (пара)', priceUsd: 28, note: 'Быстрая замена обвеса' },
+  { id: 'usb-dock', name: 'Настольная док-станция Triad', priceUsd: 42, note: 'Магнитная зарядка USB-C' },
+];
+
+export const FUTURE_CASES: FutureCase[] = [
+  {
+    id: 'ai-desk',
+    phase: 'PHASE 01 · Q2 2026',
+    status: 'SDK READY',
+    title: 'Настольный AI-ассистент с живой мимикой',
+    subtitle: 'Голосовой компаньон и Pomodoro-напарник для разработчиков',
+    description:
+      'Подключение по Wi-Fi/UART к локальным или облачным LLM: iWA ONE PRO кивает в такт ответам, показывает статус сборок, таймеры фокуса и реагирует глазами на события в вашем календаре или IDE.',
+    hardwareUse: ['OLED-дисплей эмоций', '2× Servo кинематика', 'Шина UART / Wi-Fi Bridge'],
+    metrics: [
+      { label: 'Отклик привода', value: '< 25 мс' },
+      { label: 'Автономность', value: 'до 6 ч' },
+      { label: 'API интеграция', value: 'REST / WS' },
+    ],
+  },
+  {
+    id: 'vision-tracker',
+    phase: 'PHASE 02 · Q3 2026',
+    status: 'IN R&D',
+    title: 'Автономный трекер лица для стримов и видео',
+    subtitle: 'Робот-оператор на вашем столе без лишнего софта',
+    description:
+      'Встроенная оптическая камера удерживает спикера в центре кадра, плавно поворачивая головной модуль за счёт пары Acebot + TowerPro. Идеально для созвонов, тех-блогов и записи обзоров.',
+    hardwareUse: ['Оптическая камера', 'Dual Micro Servos', 'Шарнир 180°'],
+    metrics: [
+      { label: 'Угол охвата', value: '180°' },
+      { label: 'Задержка трекинга', value: '30 FPS' },
+      { label: 'Шум приводов', value: 'Low-dB' },
+    ],
+  },
+  {
+    id: 'sentry-guard',
+    phase: 'PHASE 03 · Q4 2026',
+    status: 'PROTOTYPE',
+    title: 'Умный охранный узел рабочего пространства',
+    subtitle: 'Детекция движения и мгновенные уведомления в Telegram',
+    description:
+      'В режиме охраны робот переводит глаза в режим сканирования, фиксирует изменение сцены перед столом и отправляет уведомление владельцу, сохраняя минимальный расход энергии от LiPo 2500mAh.',
+    hardwareUse: ['Оптический сенсор', 'LiPo 2500 mAh', 'Safe Area Frame'],
+    metrics: [
+      { label: 'Режим ожидания', value: '24+ ч' },
+      { label: 'Оповещение', value: 'Telegram Bot' },
+      { label: 'Монтаж', value: 'Магнитные пазы' },
+    ],
+  },
+  {
+    id: 'iwa-swarm',
+    phase: 'PHASE 04 · 2027',
+    status: 'ROADMAP',
+    title: 'Модульный рой iWA Swarm и STEM-лаборатория',
+    subtitle: 'Синхронизация нескольких роботов для учёбы и экспериментов',
+    description:
+      'Благодаря открытому чертежу v1.0 и единым боковым креплениям несколько устройств iWA можно объединять в сеть для изучения компьютерного зрения, кинематики и распределённого поведения.',
+    hardwareUse: ['PCB Controller v1.0', 'Side Mounting Plates', 'I2C / BLE Mesh'],
+    metrics: [
+      { label: 'Узлов в связке', value: 'до 8 ботов' },
+      { label: 'Открытый CAD', value: 'STEP + Gerber' },
+      { label: 'Языки SDK', value: 'C++ / Python' },
+    ],
+  },
 ];
 
 export const GALLERY_WORKS: GalleryWork[] = [
@@ -173,6 +281,14 @@ export const GALLERY_WORKS: GalleryWork[] = [
     image: assetUrl('blueprint-cyber.webp'),
     caption: 'Оригинальная компоновка 10.2×10.2 см: питание CityTree, сервоприводы и центральная PCB.',
     aspect: 'portrait',
+  },
+  {
+    id: 'g-silver-logo',
+    title: 'iWA Metallic Core Emblem',
+    category: 'identity',
+    image: assetUrl('emblem-silver.webp'),
+    caption: 'Текстурная эмблема бренда iWA — основа визуальной системы и гравировки корпуса.',
+    aspect: 'square',
   },
   {
     id: 'g-tri-bot',
@@ -206,14 +322,6 @@ export const GALLERY_WORKS: GalleryWork[] = [
     caption: 'Световая сотовая сетка — мотив распределённой архитектуры датчиков.',
     aspect: 'wide',
   },
-  {
-    id: 'g-bold-bot',
-    title: 'Monolith Profile iWA',
-    category: 'concept',
-    image: assetUrl('art-silhouette-bold.webp'),
-    caption: 'Контрастный силуэт автономного модуля с центральным ядром iWA.',
-    aspect: 'portrait',
-  },
 ];
 
 export const FAQ_ITEMS = [
@@ -230,11 +338,11 @@ export const FAQ_ITEMS = [
     a: 'Аккумулятор LiPo CityTree 103450 (3.7V, 2500mAh) обеспечивает до 5–6 часов активного взаимодействия с движением сервоприводов и до суток в режиме ожидания на столе.',
   },
   {
-    q: 'Можно ли писать свой код и менять поведение робота?',
-    a: 'Да! Плата Controller v1.0 открыта для программирования: вы можете настраивать сценарии мимики глаз, углы сервоприводов и обработку изображения с камеры под свои задачи.',
+    q: 'Можно ли писать свой код и добавлять новые сценарии?',
+    a: 'Да! Плата Controller v1.0 открыта для программирования: вы сможете подключать собственные нейросети, трекинг камеры, уведомления и создавать кастомные кейсы из нашей дорожной карты.',
   },
   {
-    q: 'Как происходит предзаказ и оплата?',
-    a: 'Выберите нужную комплектацию в конфигураторе, оставьте контакт (Telegram или телефон) в форме предзаказа — вы получите уникальный код брони и готовый текст заявки, чтобы согласовать детали сборки и доставки напрямую с создателем проекта.',
+    q: 'Как происходит предзаказ и выбор валюты?',
+    a: 'Выберите удобную валюту в шапке сайта (по умолчанию USD, доступны также RUB и EUR), соберите комплектацию в конфигураторе и оформите заявку — после отправки откроется страница подтверждения с кодом брони для быстрой связи.',
   },
 ];
